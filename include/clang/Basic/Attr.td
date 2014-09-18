@@ -7,6 +7,13 @@
 //
 //===----------------------------------------------------------------------===//
 
+// [CAttrib addition]
+// This file has been modified for the CAttrib project to
+// allow processing of custom attribute "cattrib"
+// Every modification has a preceding comment containing
+// "[CAttrib addition]"
+// More information at https://github.com/trfd/cAttrib
+
 // The documentation is organized by category. Attributes can have category-
 // specific documentation that is collated within the larger document.
 class DocumentationCategory<string name> {
@@ -438,6 +445,17 @@ def CarriesDependency : InheritableParamAttr {
   let Subjects = SubjectList<[ParmVar, ObjCMethod, Function], ErrorDiag>;
   let Documentation = [CarriesDependencyDocs];
 }
+
+// [CAttrib addition]
+// Adds the definition of CAttrib attribute
+// This file is used to generate implementation
+// and usage of attributes
+def CAttrib : InheritableAttr {
+  let Spellings = [GCC<"cattrib">, CXX11<"","cattrib">,Keyword<"_cattrib">,Keyword<"__cattrib">];
+  let Args = [StringArgument<"SubAttr">,VariadicExprArgument<"Args">];
+  let Documentation = [Undocumented];
+}
+
 
 def CDecl : InheritableAttr {
   let Spellings = [GCC<"cdecl">, Keyword<"__cdecl">, Keyword<"_cdecl">];

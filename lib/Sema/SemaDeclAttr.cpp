@@ -11,6 +11,13 @@
 //
 //===----------------------------------------------------------------------===//
 
+// [CAttrib addition]
+// This file has been modified for the CAttrib project to
+// allow processing of custom attribute "cattrib"
+// Every modification has a preceding comment containing
+// "[CAttrib addition]"
+// More information at https://github.com/trfd/cAttrib
+
 #include "clang/Sema/SemaInternal.h"
 #include "clang/AST/ASTContext.h"
 #include "clang/AST/CXXInheritance.h"
@@ -1477,6 +1484,33 @@ static void handleMallocAttr(Sema &S, Decl *D, const AttributeList &Attr) {
   }
 
   S.Diag(Attr.getLoc(), diag::warn_attribute_malloc_pointer_only);
+}
+
+
+// [CAttrib addition]
+// This simply passes every expr arguments to the CAttribAttr
+static void handleCAttrib(Sema &S, Decl *D, const AttributeList &Attr) {
+    
+    StringRef MetaDataName;
+    if (!S.checkStringLiteralArgumentAttr(Attr, 0, MetaDataName))
+    {
+        // Should send Diag
+        return;
+    }
+    
+    SmallVector<Expr*, 8> cattribArgs;
+    for (unsigned I = 1; I < Attr.getNumArgs(); ++I)
+    {
+        cattribArgs.push_back(Attr.getArgAsExpr(I));
+    }
+    
+    Expr* *Start = cattribArgs.data();
+    unsigned Size = cattribArgs.size();
+    //llvm::array_pod_sort(Start, Start + Size);
+    D->addAttr(::new (S.Context)
+               CAttribAttr(Attr.getRange(), S.Context, MetaDataName, Start, Size,
+                           Attr.getAttributeSpellingListIndex()));
+    return;
 }
 
 static void handleCommonAttr(Sema &S, Decl *D, const AttributeList &Attr) {
@@ -4133,6 +4167,10 @@ static void ProcessDeclAttribute(Sema &S, Scope *scope, Decl *D,
     break;
   case AttributeList::AT_CarriesDependency:
     handleDependencyAttr(S, scope, D, Attr);
+    break;
+  // [CAttrib addition]
+  case AttributeList::AT_CAttrib:
+    handleCAttrib(S, D, Attr);
     break;
   case AttributeList::AT_Common:
     handleCommonAttr(S, D, Attr);
